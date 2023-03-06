@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/debug/rust2",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "external",
+            "gdbTarget": "localhost:1337",
+            "request": "attach",
+            "device": "nrf52832",
+            // "configFiles": [
+            //     "vscode_openocd.cfg"
+            // ]
+        },
+        {
+            "name": "Debug Tag",
+            "cwd": "${workspaceRoot}",
+            "executable": "./target/thumbv7em-none-eabihf/debug/examples/dw1000_ranging_tag",
+            "request": "launch",
+            "type": "cortex-debug",
+            "servertype": "external",
+            "gdbTarget": "localhost:1337",
+            "request": "attach",
+            "device": "nrf52832",
+            // "configFiles": [
+            //     "vscode_openocd.cfg"
+            // ]
+        }
+    ]
+}
