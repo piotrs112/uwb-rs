@@ -170,8 +170,8 @@ fn main() -> ! {
         dwm1001.leds.D9.disable();
 
         /*
-        - Throttle us to roughly 4 Hz
+        - Throttle us to roughly 1 Hz
         */
-        delay.delay_ms(250u32);
+        delay.delay_ms(1_000u32);
     }
 }
