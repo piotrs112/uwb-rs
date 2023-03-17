@@ -4,6 +4,7 @@
 use defmt_rtt as _; // global logger
 
 // use nrf52832_hal as _;
+use dwm1001::nrf52832_hal as _;
 
 use panic_probe as _;
 

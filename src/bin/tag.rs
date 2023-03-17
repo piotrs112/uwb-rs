@@ -1,8 +1,7 @@
 #![no_main]
 #![no_std]
 
-use defmt_rtt as _;
-use panic_probe as _;
+use uwb_rs as _; // memory layout + panic handler
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
