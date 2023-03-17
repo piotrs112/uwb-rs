@@ -1,6 +1,6 @@
 [package]
 authors = ["Piotr Socha <piotrsocha01@gmail.com>"]
-name = "uwb-rs-defmt"
+name = "uwb-rs"
 edition = "2021"
 version = "0.1.0"
 

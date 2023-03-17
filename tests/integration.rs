@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use uwb_rs_defmt as _; // memory layout + panic handler
+use uwb_rs as _; // memory layout + panic handler
 
 // See https://crates.io/crates/defmt-test/0.3.0 for more documentation (e.g. about the 'state'
 // feature)
