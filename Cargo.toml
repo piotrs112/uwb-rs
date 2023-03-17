@@ -72,3 +72,7 @@ overflow-checks = false  # <-
 # defmt-rtt = { git = "https://github.com/knurling-rs/defmt", rev = "use defmt version reported by `probe-run --version`" }
 # defmt-test = { git = "https://github.com/knurling-rs/defmt", rev = "use defmt version reported by `probe-run --version`" }
 # panic-probe = { git = "https://github.com/knurling-rs/defmt", rev = "use defmt version reported by `probe-run --version`" }
+
+[replace]
+"dwm1001:0.6.0" = { git = 'https://github.com/jkelleyrtp/dw1000-rs'}
+"dw1000:0.6.0" = { git = 'https://github.com/jkelleyrtp/dw1000-rs'}
