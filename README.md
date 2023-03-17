@@ -18,6 +18,12 @@ $ cargo install probe-run
 ```
 # Running the app
 
+## Select log level
+```console
+$ export DEFMT_LOG=debug;
+```
+## Run
+
 ``` console
 $ # `rb` is an alias for `run --bin`
 $ cargo rb anchor
