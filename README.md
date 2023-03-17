@@ -4,20 +4,20 @@
 [Install Rust from here](https://www.rust-lang.org/tools/install)
 ## Dependencies
 
-#### 1. `flip-link`:
+### 1. `flip-link`:
 
 ```console
 $ cargo install flip-link
 ```
 
-#### 2. `probe-run`:
+### 2. `probe-run`:
 
 ``` console
 $ # make sure to install v0.2.0 or later
 $ cargo install probe-run
 ```
 # Running the app
-## 7. Run!
+
 ``` console
 $ # `rb` is an alias for `run --bin`
 $ cargo rb anchor
