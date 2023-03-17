@@ -17,6 +17,7 @@ use dwm1001::{
     block_timeout,
     dw1000::{
         mac,
+        range_bias::{get_range_bias_cm, improve_rssi_estimation},
         ranging::{self, Message as _RangingMessage},
         RxConfig,
     },
@@ -28,6 +29,7 @@ use dwm1001::{
     },
     prelude::*,
 };
+use micromath::F32Ext;
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -69,6 +71,8 @@ fn main() -> ! {
         )
         .expect("Failed to set address");
 
+    let rx_config = RxConfig::default();
+
     let mut timer = Timer::new(dwm1001.TIMER0);
 
     let mut buffer1 = [0; 1024];
@@ -89,7 +93,7 @@ fn main() -> ! {
         1. Wait for ping
         */
         let mut receiving = dw1000
-            .receive(RxConfig::default())
+            .receive(rx_config)
             .expect("Failed to receive message");
 
         let message = block_timeout!(&mut timer, receiving.wait_receive(&mut buffer1));
@@ -147,12 +151,15 @@ fn main() -> ! {
         3. Wait for response
         */
         let mut receiving = dw1000
-            .receive(RxConfig::default())
+            .receive(rx_config)
             .expect("Failed to receive message");
 
         // Set timer for timeout
         timer.start(5_000_000u32);
         let result = block_timeout!(&mut timer, receiving.wait_receive(&mut buffer2));
+
+        // Get RSSI
+        let rssi = receiving.read_rx_quality().unwrap().rssi;
 
         dw1000 = receiving
             .finish_receiving()
@@ -211,8 +218,17 @@ fn main() -> ! {
                 dwm1001.leds.D9.enable();
                 delay.delay_ms(10u32);
                 dwm1001.leds.D9.disable();
-
-                defmt::info!("{:04x}:{:04x} - {} mm\n", pan_id.0, addr.0, distance_mm,);
+                let rsl = improve_rssi_estimation(rssi, &rx_config);
+                defmt::debug!("RSSI: {}, RSL: {}, diff: {}", rssi, rsl, (rssi - rsl).abs());
+                let bias = get_range_bias_cm(rsl, &rx_config) * 10.0;
+                let computed_distance = distance_mm as f32 + bias;
+                defmt::info!(
+                    "{:04x}:{:04x} - {}mm | bias: {}mm\n",
+                    pan_id.0,
+                    addr.0,
+                    computed_distance,
+                    bias
+                );
             }
             Err(e) => {
                 defmt::error!("Ranging response error: {:?}", defmt::Debug2Format(&e));

@@ -20,6 +20,7 @@ defmt-rtt = "0.4"
 dwm1001 = "0.6.0"
 embedded-timeout-macros = "0.3.0"
 ieee802154 = { version = "0.6.1", features = ["defmt"] }
+micromath = "2.0.0"
 nb = "1.0.0"
 nrf52832-hal = "0.16.0"
 panic-probe = { version = "0.3", features = ["print-defmt"] }
