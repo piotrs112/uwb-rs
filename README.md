@@ -2,6 +2,15 @@
 
 ## Rust
 [Install Rust from here](https://www.rust-lang.org/tools/install)
+
+## Target
+
+Add ARM target.
+
+```console
+rustup target add thumbv7em-none-eabihf
+```
+
 ## Dependencies
 
 ### 1. `flip-link`:
