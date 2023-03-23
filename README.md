@@ -36,17 +36,14 @@ $ export DEFMT_LOG=debug;
 ``` console
 $ # `rb` is an alias for `run --bin`
 $ cargo rb anchor
+# or
+$ cargo rb tag
     Finished dev [optimized + debuginfo] target(s) in 0.03s
 flashing program ..
 DONE
 resetting device
 (...)
 
-$ echo $?
-0
-$ # or use an example
-$ cargo run --example basestation
-(...)
 ```
 
 If you're running out of memory (`flip-link` bails with an overflow error), you can decrease the size of the device memory buffer by setting the `DEFMT_RTT_BUFFER_SIZE` environment variable. The default value is 1024 bytes, and powers of two should be used for optimal performance:
