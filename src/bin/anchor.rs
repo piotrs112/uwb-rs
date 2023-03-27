@@ -15,22 +15,23 @@ use dwm1001::{
     },
     prelude::*,
 };
-use uwb_rs::{self as _, flash_led, UWBConfig}; // memory layout + panic handler
+use uwb_rs::{self as _, flash_led, serial_number, UWBConfig}; // memory layout + panic handler
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
     defmt::info!("Launching tag");
 
     let mut dwm1001 = dwm1001::DWM1001::take().unwrap();
+    let sn = serial_number(&dwm1001);
 
     let mut delay = Delay::new(dwm1001.SYST);
-    let mut rng = Rng::new(dwm1001.RNG);
 
     let uwb_config = UWBConfig {
-        short_address: mac::ShortAddress(rng.random_u16()),
+        short_address: mac::ShortAddress(sn.1 as u16),
         ..UWBConfig::default()
     };
     dwm1001.DW_RST.reset_dw1000(&mut delay);
+
     let mut dw1000 = dwm1001
         .DW1000
         .init(&mut delay)

@@ -13,9 +13,12 @@ use dwm1001::{
         range_bias::{get_range_bias_cm, improve_rssi_estimation},
         RxConfig, TxConfig,
     },
-    nrf52832_hal::Delay,
+    nrf52832_hal::{
+        pac::{ficr::deviceid::DEVICEID_SPEC, generic::Reg},
+        Delay,
+    },
     prelude::*,
-    Led,
+    Led, DWM1001,
 };
 
 use panic_probe as _;
@@ -66,6 +69,18 @@ pub fn distance_correction(
     let rsl = improve_rssi_estimation(rssi, &rx_config);
     let bias_mm = get_range_bias_cm(rsl, &rx_config) * 10.0;
     Ok(distance_mm as f32 + bias_mm)
+}
+
+pub fn serial_number(dwm1001: &DWM1001) -> (u32, u32) {
+    let dev_id = &dwm1001.FICR.deviceid;
+    (
+        read_device_id_register(&dev_id[0]),
+        read_device_id_register(&dev_id[1]),
+    )
+}
+
+fn read_device_id_register(reg: &Reg<DEVICEID_SPEC>) -> u32 {
+    reg.read().bits()
 }
 
 // defmt-test 0.3.0 has the limitation that this `#[tests]` attribute can only be used
