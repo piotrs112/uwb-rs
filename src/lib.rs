@@ -1,6 +1,8 @@
 #![no_main]
 #![no_std]
 
+pub mod handshake;
+
 use core::fmt::Error;
 
 use defmt_rtt as _; // global logger
@@ -11,8 +13,9 @@ use dwm1001::{
     dw1000::{
         mac,
         range_bias::{get_range_bias_cm, improve_rssi_estimation},
-        RxConfig, TxConfig,
+        Ready, RxConfig, Sending, TxConfig, DW1000,
     },
+    embedded_hal::blocking::spi,
     nrf52832_hal::{
         pac::{ficr::deviceid::DEVICEID_SPEC, generic::Reg},
         Delay,

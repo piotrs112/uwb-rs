@@ -1,25 +1,33 @@
 #![no_main]
 #![no_std]
 
+use core::panic;
+
 use dwm1001::{
     block_timeout,
     dw1000::{
-        mac,
+        self, mac,
         ranging::{self, Message as _RangingMessage},
     },
     nrf52832_hal::{
         gpio::{p0::P0_17, Output, PushPull},
         pac::SPIM2,
-        rng::Rng,
-        Delay, Spim, Timer,
+        // rng::Rng,
+        Delay,
+        Spim,
+        Timer,
     },
     prelude::*,
 };
-use uwb_rs::{self as _, flash_led, serial_number, UWBConfig}; // memory layout + panic handler
+use uwb_rs::{
+    self as _, flash_led,
+    handshake::{self, advertise},
+    serial_number, UWBConfig,
+}; // memory layout + panic handler
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
-    defmt::info!("Launching tag");
+    defmt::info!("Launching anchor");
 
     let mut dwm1001 = dwm1001::DWM1001::take().unwrap();
     let sn = serial_number(&dwm1001);
@@ -67,14 +75,54 @@ fn main() -> ! {
 
     let mut buffer = [0; 1024];
 
+    // Advertise the anchor
+
+    let mut sending =
+        advertise(dw1000, &uwb_config.tx_config).expect("Failed to advertise address");
+
+    nb::block!(sending.wait_transmit()).expect("Failed to send data");
+    dw1000 = sending.finish_sending().expect("Failed to finish sending");
+
     loop {
         /*
         Strategy for mobile tag ranging:
+        - 0. Wait for Ready
         - 1. Send a ping
         - 2. Wait for a ranging request
         - 3. Send a ranging response
         - 4. Delay to throttle the rate of pings
         */
+
+        /*
+        0. Waiting for Ready packet
+        */
+
+        timer.start(5_000_000u32);
+        let mut receiving = dw1000
+            .receive(uwb_config.rx_config)
+            .expect("Failed to receive");
+        let result = nb::block!(receiving.wait_receive(&mut buffer));
+
+        let message = match result {
+            Ok(msg) => msg,
+            Err(error) => match error {
+                dw1000::Error::FrameFilteringRejection => {
+                    dw1000 = receiving
+                        .finish_receiving()
+                        .expect("Failed to finish receiving");
+                    continue;
+                }
+                e => panic!("Failed to receive {:?}", e),
+            },
+        };
+
+        dw1000 = receiving
+            .finish_receiving()
+            .expect("Failed to finish receiving");
+
+        if message.frame.payload != handshake::messages::READY {
+            continue;
+        }
 
         defmt::info!("Sending ping");
 
@@ -156,10 +204,5 @@ fn main() -> ! {
         defmt::info!("Ranging response sent");
 
         flash_led(&mut dwm1001.leds.D9, &mut delay);
-
-        /*
-        - Throttle us to roughly 1 Hz
-        */
-        delay.delay_ms(1_000u32);
     }
 }
