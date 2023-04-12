@@ -13,6 +13,7 @@
 use defmt_rtt as _;
 use panic_probe as _;
 
+use core::fmt::Write;
 use dwm1001::{
     block_timeout,
     dw1000::{
@@ -278,6 +279,8 @@ fn main() -> ! {
                         distance_correction(distance_mm, rssi, &uwb_config.rx_config).unwrap();
 
                     defmt::info!("{}:{} - {}mm\n", pan_id.0, addr.0, computed_distance,);
+                    write!(dwm1001.uart, "{} - {}\r\n", addr.0, computed_distance)
+                        .expect("Failed to write result to UART");
                 }
                 Err(e) => {
                     defmt::error!("Ranging response error: {:?}", defmt::Debug2Format(&e));
