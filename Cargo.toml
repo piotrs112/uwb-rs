@@ -25,6 +25,7 @@ micromath = "2.0.0"
 nb = "1.0.0"
 nrf52832-hal = "0.16.0"
 panic-probe = { version = "0.3", features = ["print-defmt"] }
+serde = { version = "1.0", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
 defmt-test = "0.3"
