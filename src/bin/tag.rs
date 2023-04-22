@@ -37,6 +37,8 @@ use uwb_rs::{
 fn main() -> ! {
     defmt::debug!("Launching tag.");
 
+    const N_ANCHORS: usize = 3;
+
     let mut dwm1001 = dwm1001::DWM1001::take().unwrap();
     let sn = serial_number(&dwm1001);
 
@@ -86,7 +88,7 @@ fn main() -> ! {
     let mut known_anchors = [None; 4];
 
     let mut i = 0;
-    while i < 2 {
+    while i < N_ANCHORS {
         let mut receiving = dw1000
             .receive(uwb_config.rx_config)
             .expect("Failed to receive message");
