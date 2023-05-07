@@ -215,13 +215,17 @@ fn main() -> ! {
                 .expect("Failed to receive message");
 
             // Set timer for timeout
-            timer.start(5_000_000u32);
+            timer.start(500_000u32);
             let result = block_timeout!(&mut timer, receiving.wait_receive(&mut buffer2));
 
             delay.delay_ms(5u32); // FIXME
 
             // Get RSSI
-            let rssi = receiving.read_rx_quality().unwrap().rssi;
+            let rssi = if result.is_ok() {
+                receiving.read_rx_quality().unwrap().rssi
+            } else {
+                0.0
+            };
 
             dw1000 = receiving
                 .finish_receiving()
@@ -289,7 +293,5 @@ fn main() -> ! {
                 }
             }
         }
-
-        delay.delay_ms(500u32);
     }
 }

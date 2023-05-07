@@ -101,24 +101,18 @@ fn main() -> ! {
         let mut receiving = dw1000
             .receive(uwb_config.rx_config)
             .expect("Failed to receive");
-        let result = nb::block!(receiving.wait_receive(&mut buffer));
 
-        let message = match result {
-            Ok(msg) => msg,
-            Err(error) => match error {
-                dw1000::Error::FrameFilteringRejection => {
-                    dw1000 = receiving
-                        .finish_receiving()
-                        .expect("Failed to finish receiving");
-                    continue;
-                }
-                e => panic!("Failed to receive {:?}", e),
-            },
-        };
+        timer.start(5_000_000u32);
+        let result = block_timeout!(&mut timer, receiving.wait_receive(&mut buffer));
 
         dw1000 = receiving
             .finish_receiving()
             .expect("Failed to finish receiving");
+
+        let message = match result {
+            Ok(msg) => msg,
+            Err(_) => continue,
+        };
 
         if message.frame.payload != handshake::messages::READY {
             continue;
