@@ -283,10 +283,20 @@ fn main() -> ! {
 
                     let computed_distance =
                         distance_correction(distance_mm, rssi, &uwb_config.rx_config).unwrap();
-
-                    defmt::info!("{}:{} - {}mm\n", pan_id.0, addr.0, computed_distance,);
-                    write!(dwm1001.uart, "{} - {}\r\n", addr.0, computed_distance)
-                        .expect("Failed to write result to UART");
+                    let timestamp = response.rx_time.value();
+                    defmt::info!(
+                        "[{}] {}:{} - {}mm\n",
+                        timestamp,
+                        pan_id.0,
+                        addr.0,
+                        computed_distance,
+                    );
+                    write!(
+                        dwm1001.uart,
+                        "{} {} {}\r\n",
+                        addr.0, computed_distance, timestamp
+                    )
+                    .expect("Failed to write result to UART");
                 }
                 Err(e) => {
                     defmt::error!("Ranging response error: {:?}", defmt::Debug2Format(&e));
