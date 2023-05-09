@@ -9,14 +9,17 @@ with serial.Serial("/dev/ttyACM0", baudrate=115200) as s:
     try:
         while line := s.readline().decode():
             try:
-                address, distance = [v.strip() for v in line.split(" - ")]
+                address, distance, instant = [v.strip() for v in line.split(" ")]
                 address = hex(int(address))
-                print(f"{address} - {distance}")
-                data.append((address, distance, datetime.now().isoformat()))
+                print(f"{address} {distance} {instant}")
+                data.append(
+                    (address, distance, int(instant), datetime.now().isoformat())
+                )
             except ValueError:
                 continue
     except KeyboardInterrupt:
         pass
-    pd.DataFrame(data, columns=("anchor", "distance", "timestamp")).to_csv(
-        f"{start_dt}.csv"
-    )
+    df = pd.DataFrame(data, columns=("anchor", "distance", "instant", "timestamp"))
+    df["instant"] -= df["instant"][0]
+
+    df.to_csv(f"{start_dt}.csv")
