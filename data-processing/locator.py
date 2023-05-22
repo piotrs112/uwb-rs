@@ -1,6 +1,6 @@
 from collections import namedtuple
 from math import sqrt
-from scipy.optimize import minimize
+from scipy.optimize import minimize, least_squares
 
 Point = namedtuple("Point", ["x", "y"])
 
@@ -29,16 +29,23 @@ def mean_squared_error(point: Point, distances: list[float], anchors: list[Ancho
     return mse / len(anchors)
 
 
+# def trilateration(
+#     distances: list[float], anchors: list[Anchor], initial_guess: Point = None
+# ):
+#     # Use closest anchor as initial guess by default
+#     initial_guess = initial_guess or anchors[distances.index(min(distances))].position
+
+#     return minimize(
+#         mean_squared_error,
+#         initial_guess,
+#         args=(distances, anchors),
+#         method="L-BFGS-B",
+#         options={"ftol": 1e-5, "maxiter": 1e7},
+#     )
+
+
 def trilateration(
     distances: list[float], anchors: list[Anchor], initial_guess: Point = None
 ):
-    # Use closest anchor as initial guess by default
     initial_guess = initial_guess or anchors[distances.index(min(distances))].position
-
-    return minimize(
-        mean_squared_error,
-        initial_guess,
-        args=(distances, anchors),
-        method="L-BFGS-B",
-        options={"ftol": 1e-5, "maxiter": 1e7},
-    )
+    return least_squares(mean_squared_error, initial_guess, args=(distances, anchors))
