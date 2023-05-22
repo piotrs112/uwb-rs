@@ -27,6 +27,7 @@ use dwm1001::{
     },
     prelude::*,
 };
+use lis2dh12::{self, RawAccelerometer};
 use uwb_rs::{
     self as _, distance_correction, flash_led,
     handshake::{self, send_ready},
@@ -122,6 +123,16 @@ fn main() -> ! {
 
         i += 1;
     }
+
+    // Init accelerometer
+    let address = lis2dh12::SlaveAddr::Alternative(true);
+    let mut acc = lis2dh12::Lis2dh12::new(dwm1001.LIS2DH12, address).unwrap();
+    acc.enable_axis((true, true, true))
+        .expect("Failed to enable axis");
+    acc.set_mode(lis2dh12::Mode::HighResolution)
+        .expect("Failed to set mode");
+    acc.set_odr(lis2dh12::Odr::Hz50)
+        .expect("Failed to set data rate");
 
     'main_loop: loop {
         /*
@@ -284,17 +295,21 @@ fn main() -> ! {
                     let computed_distance =
                         distance_correction(distance_mm, rssi, &uwb_config.rx_config).unwrap();
                     let timestamp = response.rx_time.value();
+                    let accel = acc.accel_raw().unwrap();
                     defmt::info!(
-                        "[{}] {}:{} - {}mm\n",
+                        "[{}] {}:{} - {}mm | {} {} {}\n",
                         timestamp,
                         pan_id.0,
                         addr.0,
                         computed_distance,
+                        accel.x,
+                        accel.y,
+                        accel.z
                     );
                     write!(
                         dwm1001.uart,
-                        "{} {} {}\r\n",
-                        addr.0, computed_distance, timestamp
+                        "{} {} {} {} {} {}\r\n",
+                        addr.0, computed_distance, timestamp, accel.x, accel.y, accel.z
                     )
                     .expect("Failed to write result to UART");
                 }
