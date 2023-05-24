@@ -4,7 +4,7 @@
 use core::fmt::Write;
 
 use dwm1001;
-use lis2dh12::{self, RawAccelerometer};
+use lis2dh12::{self, Accelerometer, RawAccelerometer};
 use uwb_rs as _; // memory layout + panic handler
 
 #[cortex_m_rt::entry]
@@ -19,12 +19,14 @@ fn main() -> ! {
         .expect("Failed to set mode");
     acc.set_odr(lis2dh12::Odr::Hz50)
         .expect("Failed to set data rate");
+
     // acc.enable_temp(true)
     //     .expect("Failed to enable temperature sensor");
 
     // Read data
     loop {
-        let accel = acc.accel_raw().unwrap();
+        // let accel = acc.accel_raw().unwrap();
+        let accel = acc.accel_norm().unwrap();
         // let temp = acc.get_temp_outf().unwrap();
 
         defmt::info!(

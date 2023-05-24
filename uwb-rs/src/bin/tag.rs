@@ -27,7 +27,7 @@ use dwm1001::{
     },
     prelude::*,
 };
-use lis2dh12::{self, RawAccelerometer};
+use lis2dh12::{self, Accelerometer};
 use uwb_rs::{
     self as _, distance_correction, flash_led,
     handshake::{self, send_ready},
@@ -295,7 +295,7 @@ fn main() -> ! {
                     let computed_distance =
                         distance_correction(distance_mm, rssi, &uwb_config.rx_config).unwrap();
                     let timestamp = response.rx_time.value();
-                    let accel = acc.accel_raw().unwrap();
+                    let accel = acc.accel_norm().unwrap();
                     defmt::info!(
                         "[{}] {}:{} - {}mm | {} {} {}\n",
                         timestamp,
