@@ -10,11 +10,13 @@ with serial.Serial(os.getenv("PROBE") or "/dev/ttyACM0", baudrate=115200) as s:
     try:
         while line := s.readline().decode():
             try:
-                address, distance, instant, acc_x, acc_y, acc_z = [
+                address, distance, instant, acc_x, acc_y, acc_z, los_confidence = [
                     v.strip() for v in line.split(" ")
                 ]
                 address = hex(int(address))
-                print(f"{address} {distance} {instant}, {acc_x}, {acc_y}, {acc_z}")
+                print(
+                    f"{address} {distance} {instant}, {acc_x}, {acc_y}, {acc_z}, {los_confidence}"
+                )
                 data.append(
                     (
                         address,
@@ -24,6 +26,7 @@ with serial.Serial(os.getenv("PROBE") or "/dev/ttyACM0", baudrate=115200) as s:
                         float(acc_x),
                         float(acc_y),
                         float(acc_z),
+                        float(los_confidence),
                     )
                 )
             except ValueError:
@@ -40,6 +43,7 @@ with serial.Serial(os.getenv("PROBE") or "/dev/ttyACM0", baudrate=115200) as s:
             "acc_x",
             "acc_y",
             "acc_z",
+            "los_confidence",
         ),
     )
     # df["instant"] -= df["instant"][0]

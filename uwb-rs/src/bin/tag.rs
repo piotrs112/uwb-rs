@@ -231,11 +231,12 @@ fn main() -> ! {
 
             delay.delay_ms(5u32); // FIXME
 
-            // Get RSSI
-            let rssi = if result.is_ok() {
-                receiving.read_rx_quality().unwrap().rssi
+            // Get RSSI and LOS confidence level
+            let (rssi, los_confidence) = if result.is_ok() {
+                let metrics = receiving.read_rx_quality().unwrap();
+                (metrics.rssi, metrics.los_confidence_level)
             } else {
-                0.0
+                (0.0, -1.0)
             };
 
             dw1000 = receiving
@@ -297,19 +298,26 @@ fn main() -> ! {
                     let timestamp = response.rx_time.value();
                     let accel = acc.accel_norm().unwrap();
                     defmt::info!(
-                        "[{}] {}:{} - {}mm | {} {} {}\n",
+                        "[{}] {}:{} - {}mm, LOS: {}| {} {} {}\n",
                         timestamp,
                         pan_id.0,
                         addr.0,
                         computed_distance,
+                        los_confidence,
                         accel.x,
                         accel.y,
                         accel.z
                     );
                     write!(
                         dwm1001.uart,
-                        "{} {} {} {} {} {}\r\n",
-                        addr.0, computed_distance, timestamp, accel.x, accel.y, accel.z
+                        "{} {} {} {} {} {} {}\r\n",
+                        addr.0,
+                        computed_distance,
+                        timestamp,
+                        accel.x,
+                        accel.y,
+                        accel.z,
+                        los_confidence
                     )
                     .expect("Failed to write result to UART");
                 }
