@@ -1,12 +1,3 @@
-//! Range measurement basestation. To be used in tandem with `dw1000_ranging_mobile_tag`
-//!
-//! This is a tag acting as a base station, collecting distances to mobile tags.
-//!
-//! The anchor/tag example does the distance calculation *at the tag* which is less useful for applications where
-//! the tags are very "dumb".
-//!
-//! Instead, the basestation intiates the ranging request and records the distance over defmt.
-
 #![no_main]
 #![no_std]
 
@@ -150,7 +141,7 @@ fn main() -> ! {
             */
             defmt::debug!("Sending READY to {:?}", &anchor);
             let mut sending =
-                send_ready(dw1000, &uwb_config.tx_config, &uwb_config.pan_id, &anchor).unwrap();
+                send_ready(dw1000, &uwb_config.tx_config, &uwb_config.pan_id, anchor).unwrap();
 
             timer.start(5_000_000u32);
             block_timeout!(&mut timer, sending.wait_transmit()).expect("Failed to transmit");

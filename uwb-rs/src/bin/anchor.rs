@@ -1,21 +1,16 @@
 #![no_main]
 #![no_std]
 
-use core::panic;
-
 use dwm1001::{
     block_timeout,
     dw1000::{
-        self, mac,
+        mac,
         ranging::{self, Message as _RangingMessage},
     },
     nrf52832_hal::{
         gpio::{p0::P0_17, Output, PushPull},
         pac::SPIM2,
-        // rng::Rng,
-        Delay,
-        Spim,
-        Timer,
+        Delay, Spim, Timer,
     },
     prelude::*,
 };
@@ -23,7 +18,7 @@ use uwb_rs::{
     self as _, flash_led,
     handshake::{self, advertise},
     serial_number, UWBConfig,
-}; // memory layout + panic handler
+};
 
 #[cortex_m_rt::entry]
 fn main() -> ! {
@@ -53,22 +48,12 @@ fn main() -> ! {
         .enable_rx_interrupts()
         .expect("Failed to enable RX interrupts");
 
-    // These are the hardcoded calibration values from the dwm1001-examples
-    // repository[1]. Ideally, the calibration values would be determined using
-    // the proper calibration procedure, but hopefully those are good enough for
-    // now.
-    //
-    // [1] https://github.com/Decawave/dwm1001-examples
     dw1000
         .set_antenna_delay(16456, 16300)
         .expect("Failed to set antenna delay");
 
-    // Set network address
     dw1000
-        .set_address(
-            uwb_config.pan_id,        // hardcoded network id
-            uwb_config.short_address, // random device address
-        )
+        .set_address(uwb_config.pan_id, uwb_config.short_address)
         .expect("Failed to set address");
 
     let mut timer = Timer::new(dwm1001.TIMER0);
@@ -90,7 +75,6 @@ fn main() -> ! {
         - 1. Send a ping
         - 2. Wait for a ranging request
         - 3. Send a ranging response
-        - 4. Delay to throttle the rate of pings
         */
 
         /*
