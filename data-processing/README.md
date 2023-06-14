@@ -9,6 +9,7 @@ Description:
     - not very accurate
 - `preliminary_tests.ipynb` - stationary data trilateration using `easy_trilateration` library \<WIP\>
     - much better than tests.ipynb
+- `kalman.ipynb` - Kalman filter for data processed through `movement.ipynb`
 
 ## Data collection
 Use `collect_data.py` to collect data.
@@ -25,4 +26,4 @@ LABEL=<label> PROBE=</dev/XYZ> python3 collect_data.py
 The default probe is `/dev/ttyACM0`. There is no default label (empty string).
 
 ## Tips
-Start with `preliminary_tests.ipynb`, then test movement data with `movement.ipynb`.
+Start with `preliminary_tests.ipynb`, then test movement data with `movement.ipynb`. The notebbok outputs results into a CSV file into `data/triangulated/`. This data can then be processed through a Kalman filter with `kalman.ipynb`.
