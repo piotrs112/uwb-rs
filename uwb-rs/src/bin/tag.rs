@@ -77,7 +77,7 @@ fn main() -> ! {
     let mut buffer1 = [0; 1024];
     let mut buffer2 = [0; 1024];
 
-    let mut known_anchors = [None; 4];
+    let mut known_anchors = [None; N_ANCHORS];
 
     let mut i = 0;
     while i < N_ANCHORS {
