@@ -270,7 +270,6 @@ fn main() -> ! {
             /*
             4. Calculate distance
             */
-            flash_led(&mut dwm1001.leds.D11, &mut delay);
 
             // If this is not a PAN ID and short address, it doesn't
             // come from a compatible node. Ignore it.
@@ -316,6 +315,8 @@ fn main() -> ! {
                     defmt::error!("Ranging response error: {:?}", defmt::Debug2Format(&e));
                 }
             }
+
+            flash_led(&mut dwm1001.leds.D11, &mut delay);
         }
     }
 }
