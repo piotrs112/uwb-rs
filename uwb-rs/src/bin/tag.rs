@@ -188,9 +188,8 @@ fn main() -> ! {
                 "Received ping from {:?}.\nResponding with ranging request.",
                 ping.source
             );
-            dwm1001.leds.D10.enable();
-            delay.delay_ms(10u32);
-            dwm1001.leds.D10.disable();
+
+            flash_led(&mut dwm1001.leds.D10, &mut delay);
 
             // Wait for a moment, to give the anchor a chance to start listening
             // for the reply.
@@ -223,11 +222,12 @@ fn main() -> ! {
             delay.delay_ms(5u32); // FIXME
 
             // Get RSSI and LOS confidence level
-            let (rssi, los_confidence) = if result.is_ok() {
-                let metrics = receiving.read_rx_quality().unwrap();
-                (metrics.rssi, metrics.los_confidence_level)
-            } else {
-                (0.0, -1.0)
+            let (rssi, los_confidence) = match result {
+                Ok(_) => {
+                    let metrics = receiving.read_rx_quality().unwrap();
+                    (metrics.rssi, metrics.los_confidence_level)
+                }
+                Err(_) => (0.0, -1.0),
             };
 
             dw1000 = receiving
