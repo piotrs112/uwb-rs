@@ -81,7 +81,6 @@ fn main() -> ! {
         0. Waiting for Ready packet
         */
 
-        timer.start(5_000_000u32);
         let mut receiving = dw1000
             .receive(uwb_config.rx_config)
             .expect("Failed to receive");
