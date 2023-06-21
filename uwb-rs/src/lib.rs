@@ -9,6 +9,7 @@ use defmt_rtt as _;
 
 use dwm1001::{
     dw1000::{
+        hl::Receiving,
         mac,
         range_bias::{get_range_bias_cm, improve_rssi_estimation},
         RxConfig, TxConfig,
