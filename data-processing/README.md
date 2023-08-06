@@ -1,11 +1,17 @@
 # Data processing for uwb-rs
 This is a collection of scripts and notebooks for processing ranging data from UWB tags.
 
-Description:
+## Main notebooks
+- `mlat_many_samples.ipynb` - full multilateration and Kalman filtering script. Probably the one you want to use
+- `uwb_simulation` - generates simulated UWB distance data
+
+## Test notebooks
+
+These notebooks are used for testing different features. They may or may not work.
 - `accel.ipynb` - accelerometer data filtering \<WIP\>
 - `movement.ipynb` - for csv files with movement \<WIP\>
     - UWB-only for now
-- `tests.ipynb` - dane stacjonarne, own mean-squared-error-based trilateration algorithm \<WIP\>
+- `tests.ipynb` - stationary data, own mean-squared-error-based trilateration algorithm \<WIP\>
     - not very accurate
 - `preliminary_tests.ipynb` - stationary data trilateration using `easy_trilateration` library \<WIP\>
     - much better than tests.ipynb
@@ -25,5 +31,31 @@ LABEL=<label> PROBE=</dev/XYZ> python3 collect_data.py
 
 The default probe is `/dev/ttyACM0`. There is no default label (empty string).
 
+
+## Datasets
+The directory `data/` should contain datasets. Each dataset should contain one or multiple CSV files with distance measurements and an `environment.json` file describing the test environment, for example:
+
+```json
+{
+    "tag": {"P1": [1560, 1700], "P2": [2185, 2550], "P3": [1560, 2990], "P4": [775, 2130], "P5": [1560, 0], "P6": [1560, 840]},
+    "anchors": {"0x6c0d": [0, 0], "0x5601": [3400, 0], "0x26bd": [3400, 4350], "0x5836": [-200, 4350]},
+    "z": "",
+    "acc_orientation": "+y",
+    "REF_POINT": "P2"
+}
+
+```
+where:
+
+- `tag` contains a map of predefined reference point and their [`x`, `y`] coordinates,
+- `anchors` contains a map of anchors and their positions. The key should match the anchors' values used in the `anchor` CSV column,
+- `z` is the Z-axis height of the anchors. This is not used at the moment,
+- `acc_orientation` is the direction of the accelerometer's +Z axis in the room's coordinate system. Valid values are: `+y`, `-y`, `+z`, `-z`, `+x` and `-x`.
+- `REF_POINT`: the reference point name. Should match a key from the `tag` map.
+
+These parameters can also be set in the `mlat_many_samples.ipynb` notebook. The presence of the `environment.json` file **will** override those manually set parameters.
+
 ## Tips
-Start with `preliminary_tests.ipynb`, then test movement data with `movement.ipynb`. The notebbok outputs results into a CSV file into `data/triangulated/`. This data can then be processed through a Kalman filter with `kalman.ipynb`.
+If you don't have the hardware modules, you can generate simulated data. Warning: the simualtion does not generate accelerometer data.
+
+The data should be placed inside the `data/` directory in the project root. Using datasets is highly recommended.

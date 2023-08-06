@@ -6,6 +6,15 @@ class Point2D:
         self.x = x
         self.y = y
 
+    def __getitem__(self, item) -> float:
+        match item:
+            case 0:
+                return self.x
+            case 1:
+                return self.y
+            case _:
+                raise KeyError
+
 
 class Point3D:
     x: float
@@ -16,6 +25,17 @@ class Point3D:
         self.x = x
         self.y = y
         self.z = z
+
+    def __getitem__(self, item) -> float:
+        match item:
+            case 0:
+                return self.x
+            case 1:
+                return self.y
+            case 2:
+                return self.z
+            case _:
+                raise KeyError
 
 
 class Circle:

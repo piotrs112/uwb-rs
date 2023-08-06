@@ -29,7 +29,7 @@ use uwb_rs::{
 fn main() -> ! {
     defmt::debug!("Launching tag.");
 
-    const N_ANCHORS: usize = 3;
+    const N_ANCHORS: usize = 4;
 
     let mut dwm1001 = dwm1001::DWM1001::take().unwrap();
     let sn = serial_number(&dwm1001);
@@ -215,13 +215,12 @@ fn main() -> ! {
                 .receive(uwb_config.rx_config)
                 .expect("Failed to receive message");
 
-            // Set timer for timeout
             timer.start(500_000u32);
             let result = block_timeout!(&mut timer, receiving.wait_receive(&mut buffer2));
 
-            delay.delay_ms(5u32); // FIXME
+            // Wait for a moment so RSSI and LOS confidence data become available
+            delay.delay_ms(5u32);
 
-            // Get RSSI and LOS confidence level
             let (rssi, los_confidence) = match result {
                 Ok(_) => {
                     let metrics = receiving.read_rx_quality().unwrap();
@@ -287,17 +286,6 @@ fn main() -> ! {
                         distance_correction(distance_mm, rssi, &uwb_config.rx_config).unwrap();
                     let timestamp = response.rx_time.value();
                     let accel = acc.accel_norm().unwrap();
-                    defmt::info!(
-                        "[{}] {}:{} - {}mm, LOS: {}| {} {} {}\n",
-                        timestamp,
-                        pan_id.0,
-                        addr.0,
-                        computed_distance,
-                        los_confidence,
-                        accel.x,
-                        accel.y,
-                        accel.z
-                    );
                     write!(
                         dwm1001.uart,
                         "{} {} {} {} {} {} {}\r\n",
@@ -310,6 +298,17 @@ fn main() -> ! {
                         los_confidence
                     )
                     .expect("Failed to write result to UART");
+                    defmt::info!(
+                        "[{}] {}:{} - {}mm, LOS: {}| {} {} {}\n",
+                        timestamp,
+                        pan_id.0,
+                        addr.0,
+                        computed_distance,
+                        los_confidence,
+                        accel.x,
+                        accel.y,
+                        accel.z
+                    );
                 }
                 Err(e) => {
                     defmt::error!("Ranging response error: {:?}", defmt::Debug2Format(&e));
