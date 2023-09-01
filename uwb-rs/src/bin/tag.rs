@@ -1,12 +1,3 @@
-//! Range measurement basestation. To be used in tandem with `dw1000_ranging_mobile_tag`
-//!
-//! This is a tag acting as a base station, collecting distances to mobile tags.
-//!
-//! The anchor/tag example does the distance calculation *at the tag* which is less useful for applications where
-//! the tags are very "dumb".
-//!
-//! Instead, the basestation intiates the ranging request and records the distance over defmt.
-
 #![no_main]
 #![no_std]
 
@@ -27,6 +18,7 @@ use dwm1001::{
     },
     prelude::*,
 };
+use lis2dh12::{self, Accelerometer};
 use uwb_rs::{
     self as _, distance_correction, flash_led,
     handshake::{self, send_ready},
@@ -37,7 +29,7 @@ use uwb_rs::{
 fn main() -> ! {
     defmt::debug!("Launching tag.");
 
-    const N_ANCHORS: usize = 3;
+    const N_ANCHORS: usize = 4;
 
     let mut dwm1001 = dwm1001::DWM1001::take().unwrap();
     let sn = serial_number(&dwm1001);
@@ -85,7 +77,7 @@ fn main() -> ! {
     let mut buffer1 = [0; 1024];
     let mut buffer2 = [0; 1024];
 
-    let mut known_anchors = [None; 4];
+    let mut known_anchors = [None; N_ANCHORS];
 
     let mut i = 0;
     while i < N_ANCHORS {
@@ -123,6 +115,16 @@ fn main() -> ! {
         i += 1;
     }
 
+    // Init accelerometer
+    let address = lis2dh12::SlaveAddr::Alternative(true);
+    let mut acc = lis2dh12::Lis2dh12::new(dwm1001.LIS2DH12, address).unwrap();
+    acc.enable_axis((true, true, true))
+        .expect("Failed to enable axis");
+    acc.set_mode(lis2dh12::Mode::HighResolution)
+        .expect("Failed to set mode");
+    acc.set_odr(lis2dh12::Odr::Hz50)
+        .expect("Failed to set data rate");
+
     'main_loop: loop {
         /*
         Strategy for basestation:
@@ -139,7 +141,7 @@ fn main() -> ! {
             */
             defmt::debug!("Sending READY to {:?}", &anchor);
             let mut sending =
-                send_ready(dw1000, &uwb_config.tx_config, &uwb_config.pan_id, &anchor).unwrap();
+                send_ready(dw1000, &uwb_config.tx_config, &uwb_config.pan_id, anchor).unwrap();
 
             timer.start(5_000_000u32);
             block_timeout!(&mut timer, sending.wait_transmit()).expect("Failed to transmit");
@@ -186,9 +188,8 @@ fn main() -> ! {
                 "Received ping from {:?}.\nResponding with ranging request.",
                 ping.source
             );
-            dwm1001.leds.D10.enable();
-            delay.delay_ms(10u32);
-            dwm1001.leds.D10.disable();
+
+            flash_led(&mut dwm1001.leds.D10, &mut delay);
 
             // Wait for a moment, to give the anchor a chance to start listening
             // for the reply.
@@ -214,17 +215,18 @@ fn main() -> ! {
                 .receive(uwb_config.rx_config)
                 .expect("Failed to receive message");
 
-            // Set timer for timeout
             timer.start(500_000u32);
             let result = block_timeout!(&mut timer, receiving.wait_receive(&mut buffer2));
 
-            delay.delay_ms(5u32); // FIXME
+            // Wait for a moment so RSSI and LOS confidence data become available
+            delay.delay_ms(5u32);
 
-            // Get RSSI
-            let rssi = if result.is_ok() {
-                receiving.read_rx_quality().unwrap().rssi
-            } else {
-                0.0
+            let (rssi, los_confidence) = match result {
+                Ok(_) => {
+                    let metrics = receiving.read_rx_quality().unwrap();
+                    (metrics.rssi, metrics.los_confidence_level)
+                }
+                Err(_) => (0.0, -1.0),
             };
 
             dw1000 = receiving
@@ -267,7 +269,6 @@ fn main() -> ! {
             /*
             4. Calculate distance
             */
-            flash_led(&mut dwm1001.leds.D11, &mut delay);
 
             // If this is not a PAN ID and short address, it doesn't
             // come from a compatible node. Ignore it.
@@ -284,24 +285,37 @@ fn main() -> ! {
                     let computed_distance =
                         distance_correction(distance_mm, rssi, &uwb_config.rx_config).unwrap();
                     let timestamp = response.rx_time.value();
+                    let accel = acc.accel_norm().unwrap();
+                    write!(
+                        dwm1001.uart,
+                        "{} {} {} {} {} {} {}\r\n",
+                        addr.0,
+                        computed_distance,
+                        timestamp,
+                        accel.x,
+                        accel.y,
+                        accel.z,
+                        los_confidence
+                    )
+                    .expect("Failed to write result to UART");
                     defmt::info!(
-                        "[{}] {}:{} - {}mm\n",
+                        "[{}] {}:{} - {}mm, LOS: {}| {} {} {}\n",
                         timestamp,
                         pan_id.0,
                         addr.0,
                         computed_distance,
+                        los_confidence,
+                        accel.x,
+                        accel.y,
+                        accel.z
                     );
-                    write!(
-                        dwm1001.uart,
-                        "{} {} {}\r\n",
-                        addr.0, computed_distance, timestamp
-                    )
-                    .expect("Failed to write result to UART");
                 }
                 Err(e) => {
                     defmt::error!("Ranging response error: {:?}", defmt::Debug2Format(&e));
                 }
             }
+
+            flash_led(&mut dwm1001.leds.D11, &mut delay);
         }
     }
 }

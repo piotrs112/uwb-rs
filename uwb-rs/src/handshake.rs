@@ -5,35 +5,6 @@ use dwm1001::{
 };
 use ieee802154::mac::{PanId, ShortAddress};
 
-// use serde::{Deserialize, Serialize};
-
-// #[derive(Debug, Serialize, Deserialize)]
-// #[repr(C)]
-// pub struct Advertise {
-//     //id: u16, // Short address
-// }
-// impl Message for Advertise {
-//     const PRELUDE: Prelude = Prelude(b"ADVERTISE");
-//     const PRELUDE_LEN: usize = 9;
-// }
-
-// impl Advertise {
-//     pub fn new<SPI, CS>(
-//         dw1000: &mut DW1000<SPI, CS, Ready>,
-//     ) -> Result<TxMessage<Self>, dwm1001::dw1000::Error<SPI, CS>>
-//     where
-//         SPI: spi::Transfer<u8> + spi::Write<u8>,
-//         CS: OutputPin,
-//     {
-//         dw1000.send(&[], destination, None, config)
-//         // Ok(TxMessage {
-//         //     recipient: mac::Address::broadcast(&mac::AddressMode::Short),
-//         //     tx_time: Instant,
-//         //     payload: todo!(),
-//         // })
-//     }
-// }
-
 pub mod messages {
     pub const ADVERTISE: &[u8] = b"ADVERTISE";
     pub const READY: &[u8] = b"READY";

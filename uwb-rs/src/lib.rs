@@ -5,12 +5,11 @@ pub mod handshake;
 
 use core::fmt::Error;
 
-use defmt_rtt as _; // global logger
+use defmt_rtt as _;
 
-// use nrf52832_hal as _;
-// use dwm1001::prelude::*;
 use dwm1001::{
     dw1000::{
+        hl::Receiving,
         mac,
         range_bias::{get_range_bias_cm, improve_rssi_estimation},
         RxConfig, TxConfig,
@@ -68,8 +67,8 @@ pub fn distance_correction(
     rssi: f32,
     rx_config: &RxConfig,
 ) -> Result<f32, Error> {
-    let rsl = improve_rssi_estimation(rssi, &rx_config);
-    let bias_mm = get_range_bias_cm(rsl, &rx_config) * 10.0;
+    let rsl = improve_rssi_estimation(rssi, rx_config);
+    let bias_mm = get_range_bias_cm(rsl, rx_config) * 10.0;
     Ok(distance_mm as f32 + bias_mm)
 }
 
@@ -83,18 +82,4 @@ pub fn serial_number(dwm1001: &DWM1001) -> (u32, u32) {
 
 fn read_device_id_register(reg: &Reg<DEVICEID_SPEC>) -> u32 {
     reg.read().bits()
-}
-
-// defmt-test 0.3.0 has the limitation that this `#[tests]` attribute can only be used
-// once within a crate. the module can be in any file but there can only be at most
-// one `#[tests]` module in this library crate
-#[cfg(test)]
-#[defmt_test::tests]
-mod unit_tests {
-    use defmt::assert;
-
-    #[test]
-    fn it_works() {
-        assert!(true)
-    }
 }

@@ -159,6 +159,15 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# VSCode
+.vscode/
+
 # Dataset related files
 comments.txt
 *.csv
+*.csv_bad
+plots_output/
+*.png
+video.html
+environment.json
+*.zip
